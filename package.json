@@ -1,7 +1,7 @@
 {
   "name": "mr-electron-fan-kk",
   "private": true,
-  "version": "1.0.4",
+  "version": "1.0.3",
   "description": "这是一个dome",
   "author": "mr·Fan",
   "type": "module",
@@ -40,7 +40,7 @@
     "publish": [
       {
         "provider": "generic",
-        "url": "https://oss.cadwaladerss.com/updates/"
+        "url": "http://localhost:6099/updates/"
       }
     ]
   },

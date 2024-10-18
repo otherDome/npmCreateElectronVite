@@ -1,7 +1,8 @@
-import { app, BrowserWindow, Menu, dialog, Notification } from 'electron';
+import { app, BrowserWindow, Menu, dialog, Notification,ipcMain } from 'electron';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { autoUpdater } from 'electron-updater';
+import express from 'express'; // 确保这里是正确引入 express
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -17,6 +18,162 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, 
 
 let mainWindow: BrowserWindow | null;
 
+// ------------------------------------
+const sqlite3 = require('sqlite3').verbose();
+
+// import sqlite3 from 'sqlite3';
+// squliteDb()
+// function squliteDb() {
+
+  // 确保数据库路径正确
+  const dbPath = path.resolve(process.env.APP_ROOT, '9999.db');
+  // 创建 SQLite 数据库连接
+  let db = null;
+
+  try {
+    db = new sqlite3.Database(dbPath, (err: any) => {
+      if (err) {
+        console.error('无法连接数据库:', err.message);
+      } else {
+        console.log('成功连接到 SQLite 数据库');
+      }
+    });
+    db.all('SELECT * FROM user', (err: any, rows: any) => {
+      if (err) {
+        console.error('查询失败:', err.message);
+      } else {
+        console.log('查询结果:', rows);
+      }
+      // db.close();
+    });
+
+
+  } catch (error) {
+    console.error('SQLite 连接出错:', error);
+  }
+// }
+
+// 创建一个 Express 应用
+const expressApp = express();
+
+const PORT = 3000;
+expressApp.listen(PORT, () => {
+  console.log(`Express HTTP server is running at http://localhost:${PORT}`);
+});
+
+// 定义一个 API 接口查询数据库
+expressApp.get('/api/users', (req:any, res:any) => {
+  db.all('SELECT * FROM user', [], (err:any, rows:any) => {
+    if (err) {
+      console.log(req)
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(rows); // 返回查询结果
+  });
+});
+
+async function dbGet(): Promise<any> {
+  // 创建 SQLite 数据库连接
+  let db:any = null;
+
+  try {
+    db = await new Promise((resolve, reject) => {
+      db = new sqlite3.Database(dbPath, (err: any) => {
+        if (err) {
+          console.error('无法连接数据库:', err.message);
+          reject(err);
+        } else {
+          console.log('成功连接到 SQLite 数据库');
+          resolve(db);
+        }
+      });
+    });
+
+    // 使用 db 对象进行数据库操作
+    const rows = await new Promise((resolve, reject) => {
+      db.all('SELECT * FROM user', (err: any, rows: any) => {
+        if (err) {
+          console.error('查询失败:', err.message);
+          reject(err);
+        } else {
+          console.log('查询结果:', rows);
+          resolve(rows);
+        }
+      });
+    });
+
+    // 在这里关闭数据库连接
+    await new Promise((resolve, reject) => {
+      db.close((err: any) => {
+        if (err) {
+          console.error('关闭数据库连接失败:', err.message);
+          reject(err);
+        } else {
+          console.log('成功关闭数据库连接',resolve);
+          resolve('数据库连接已关闭');
+        }
+      });
+    });
+
+    return rows;
+  } catch (error) {
+    console.error('SQLite 操作出错:', error);
+    throw error; // 向外抛出错误
+  }
+}
+
+async function dbChange(SQL:string): Promise<any> {
+  // 创建 SQLite 数据库连接
+  let db:any = null;
+
+  try {
+    db = await new Promise((resolve, reject) => {
+      db = new sqlite3.Database(dbPath, (err: any) => {
+        if (err) {
+          console.error('无法连接数据库:', err.message);
+          reject(err);
+        } else {
+          console.log('成功连接到 SQLite 数据库');
+          resolve(db);
+        }
+      });
+    });
+
+    // 使用 db 对象进行数据库操作
+    const rows = await new Promise((resolve, reject) => {
+      db.all(SQL, (err: any, rows: any) => {
+        if (err) {
+          console.error('添加失败:', err.message);
+          reject(err);
+        } else {
+          console.log('添加成功', rows);
+          resolve(rows);
+        }
+      });
+    });
+
+    // 在这里关闭数据库连接
+    await new Promise((resolve, reject) => {
+      db.close((err: any) => {
+        if (err) {
+          console.error('关闭数据库连接失败:', err.message);
+          reject(err);
+        } else {
+          console.log('成功关闭数据库连接',resolve);
+          resolve('数据库连接已关闭');
+        }
+      });
+    });
+
+    return rows;
+  } catch (error) {
+    console.error('SQLite 操作出错:', error);
+    throw error; // 向外抛出错误
+  }
+}
+
+// ------------------------------------
 function createWindow() {
   mainWindow = new BrowserWindow({
     icon: path.join(process.env.VITE_PUBLIC, 'electron-vite.svg'),
@@ -40,7 +197,7 @@ function createWindow() {
             dialog.showMessageBox({
               type: 'info',
               title: '关于',
-              message: '大胆我真想给你🔪了1.0.3必须🔪🔪🔪🔪了你',
+              message: '大胆我真想给你🔪了1.0.4必须🔪🔪🔪🔪了你',
               buttons: ['确定'],
             });
           },
@@ -68,6 +225,40 @@ function createWindow() {
   } else {
     mainWindow.loadFile(path.join(RENDERER_DIST, 'index.html'));
   }
+
+  
+  ipcMain.on('openFlyCar', () => {
+    dbGet().then(rows => {
+      console.log('Fetched rows:', rows);
+      if (mainWindow) {
+        mainWindow.webContents.send('add', rows)
+      }
+    }).catch(error => {
+      console.error('Error fetching rows:', error);
+    });
+  })
+
+  ipcMain.on('changeSQ', (event,SQL) => {
+    console.log(event)
+    dbChange(SQL).then(rows => {
+      console.log('Fetched rows:', rows);
+      // if (mainWindow) {
+      //   mainWindow.webContents.send('add', rows)
+      // }
+      dbGet().then(rows => {
+        console.log('Fetched rows:', rows);
+        if (mainWindow) {
+          mainWindow.webContents.send('add', rows)
+        }
+      }).catch(error => {
+        console.error('Error fetching rows:', error);
+      });
+    }).catch(error => {
+      console.error('Error fetching rows:', error);
+    });
+  })
+  
+
 }
 // 监听更新事件
 autoUpdater.on('update-available', async (info) => {
@@ -123,3 +314,5 @@ app.whenReady().then(() => {
   createWindow();
   autoUpdater.checkForUpdatesAndNotify(); // 检查更新
 });
+
+

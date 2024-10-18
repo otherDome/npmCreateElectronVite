@@ -15,7 +15,9 @@
     "productName": "mrFan",
     "files": [
       "dist-electron/**/*",
-      "dist/**/*"
+      "dist/**/*",
+      "api/**/*", 
+      "9999.db"
     ],
     "directories": {
       "buildResources": "assets",

@@ -26,7 +26,8 @@ const sqlite3 = require('sqlite3').verbose();
 // function squliteDb() {
 
   // 确保数据库路径正确
-  const dbPath = path.resolve(process.env.APP_ROOT, '9999.db');
+  // const dbPath = path.resolve(process.env.APP_ROOT, '9999.db');
+  const dbPath ='D:/dome/npmCreateElectronVite/9999.db'
   // 创建 SQLite 数据库连接
   let db = null;
 

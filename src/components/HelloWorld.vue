@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
-import { userRequest } from '../api/user'
+// import { userRequest } from '../api/user'
+import axios from 'axios';
 defineProps<{ msg: string }>()
 let message = ref('');
 let localValue = ref('请输入SQL')
@@ -10,10 +11,22 @@ const databaseTest=()=>{
   (window as any).ipcRenderer.send('openFlyCar')
 }
 const addHttp=()=>{
-  userRequest({}).then((res: any) => {
-    console.log('res: ', res)
-    dataList.value = res
-  })
+  // userRequest({}).then((res: any) => {
+  //   console.log('res: ', res)
+  //   dataList.value = res
+  // })
+  axios.get('http://127.0.0.1:3000/api/users')
+    .then((response) => {
+      // 请求成功，打印响应数据
+      console.log('res: ', response.data);
+      dataList.value = response.data
+      // 假设你有一个响应式变量dataList来存储数据
+      // dataList.value = response.data; // 这里需要根据你的实际代码来设置
+    })
+    .catch((error) => {
+      // 请求失败，打印错误信息
+      console.error('Error during fetching user data:', error);
+    });
 }
 const changeSQ=()=>{
   console.log(localValue,"localValue");

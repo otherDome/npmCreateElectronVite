@@ -24,10 +24,17 @@ const sqlite3 = require('sqlite3').verbose();
 // import sqlite3 from 'sqlite3';
 // squliteDb()
 // function squliteDb() {
+  let dbPath =null as any
+  // 确保数据库路径正确
+if (process.env.NODE_ENV === 'development') { 
+  dbPath = path.resolve(process.env.APP_ROOT, '9999.db');
+} else {
+  dbPath ='D:/dome/npmCreateElectronVite/9999.db'
+}
 
   // 确保数据库路径正确
   // const dbPath = path.resolve(process.env.APP_ROOT, '9999.db');
-  const dbPath ='D:/dome/npmCreateElectronVite/9999.db'
+
   // 创建 SQLite 数据库连接
   let db = null;
 

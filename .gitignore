@@ -26,3 +26,4 @@ dist-ssr
 helper.json
 release
 .history
+dist-electron/main.js

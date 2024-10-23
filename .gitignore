@@ -22,8 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-
-helper.json
-release
 .history
-dist-electron/main.js
+dist-electron
+release

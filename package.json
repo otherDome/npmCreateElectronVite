@@ -1,11 +1,12 @@
 {
-  "name": "electron-vite-project-updater",
+  "name": "electron-vite-project-sqlite",
   "private": true,
   "version": "1.0.5",
-  "description": "electron-vite-project-updater",
+  "description": "这是一个dome",
   "author": "FengXiWuTong",
-  "type": "module",
+  "type": "commonjs",
   "scripts": {
+    "postinstall": "electron-builder install-app-deps",
     "dev": "chcp 65001 && vite",
     "build": "vue-tsc && vite build && electron-builder",
     "preview": "vite preview"
@@ -14,7 +15,9 @@
     "productName": "FengXiWuTong",
     "files": [
       "dist-electron/**/*",
-      "dist/**/*"
+      "dist/**/*",
+      "api/**/*", 
+      "9999.db"
     ],
     "directories": {
       "buildResources": "assets",
@@ -42,25 +45,39 @@
         "provider": "generic",
         "url": "http://localhost:6099/updates/"
       }
+    ],
+    "extraMetadata": {
+      "main": "dist-electron/main.js"
+    },
+    "extraResources": [
+      {
+        "from": "node_modules/sqlite3",
+        "to": "node_modules/sqlite3",
+        "filter": [
+          "**/*"
+        ]
+      }
     ]
   },
   "dependencies": {
     "axios": "^1.7.7",
-    "vue": "^3.4.21",
-    "express": "^4.21.1"
+    "express": "^4.21.1",
+    "vue": "^3.4.21"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
+    "@types/sqlite3": "^3.1.11",
     "@vitejs/plugin-vue": "^5.0.4",
-    "typescript": "^5.2.2",
-    "vite": "^5.1.6",
-    "vue-tsc": "^2.0.26",
     "electron": "^30.0.1",
     "electron-builder": "^24.13.3",
     "electron-updater": "^6.3.9",
+    "sequelize": "^6.37.4",
     "sqlite3": "^5.1.7",
+    "typescript": "^5.2.2",
+    "vite": "^5.1.6",
     "vite-plugin-electron": "^0.28.6",
-    "vite-plugin-electron-renderer": "^0.14.5"
+    "vite-plugin-electron-renderer": "^0.14.6",
+    "vue-tsc": "^2.0.26"
   },
   "main": "dist-electron/main.js"
 }

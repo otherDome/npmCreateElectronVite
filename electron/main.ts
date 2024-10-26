@@ -1,7 +1,8 @@
-import { app, BrowserWindow, Menu, dialog, Notification } from 'electron';
+import { app, BrowserWindow, Menu, dialog, Notification, ipcMain } from 'electron';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { autoUpdater } from 'electron-updater';
+import express from 'express';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -16,7 +17,58 @@ export const RENDERER_DIST = path.join(process.env.APP_ROOT, 'dist');
 process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, 'public') : RENDERER_DIST;
 
 let mainWindow: BrowserWindow | null;
+// -------------------
+var Datastore = require('nedb'),
+  db = new Datastore({ filename: './data.db', autoload: true });
+//更新数据
+// db.update(
+//     { name: "huang", age: "25" },
+//     { $set: { name: "huang1" } },
+//     function (err, data) {
+//       if (err) {
+//         console.log(err);
+//         return;
+//       }
+//       console.log(data);
+//     }
+//   )
+//增加数据方法
+db.insert({ name: '实验添加', id: 0 }, function (err: any, doc: any) {
+  if (err) {
+    console.log(err);
+    return;
+  }
+  console.log(doc);
+});
 
+db.find({}, function (err: any, docs: any) {
+  console.log('-----------')
+  if (err) {
+    console.log("docs2", docs)
+    console.log(err)
+  } else {
+    console.log("docs2", docs)
+    console.log(err)
+    if (mainWindow) {
+      mainWindow.webContents.send('add', docs)
+    }
+  }
+  console.log('-----------')
+});
+// -------------------
+// 创建一个 Express 应用
+const expressApp = express();
+
+const PORT = 3000;
+expressApp.listen(PORT, () => {
+  console.log(`Express HTTP server is running at http://localhost:${PORT}`);
+});
+
+// 定义一个 API 接口查询数据库
+expressApp.get('/api/test', (req: any, res: any) => {
+  res.json(req + '调用成功'); // 返回查询结果
+});
+// -------------------
 function createWindow() {
   mainWindow = new BrowserWindow({
     icon: path.join(process.env.VITE_PUBLIC, 'electron-vite.svg'),
@@ -68,6 +120,28 @@ function createWindow() {
   } else {
     mainWindow.loadFile(path.join(RENDERER_DIST, 'index.html'));
   }
+
+
+  ipcMain.on('test', () => {
+    const rows = '主线程接接收IPC传递来的消息'
+    console.log('rows:', rows);
+    if (mainWindow) {
+      db.find({}, function (err: any, docs: any) {
+        console.log('-----------')
+        if (err) {
+          console.log("err", docs)
+        } else {
+          console.log("docs", docs)
+          if (mainWindow) {
+            mainWindow.webContents.send('add', docs)
+          }
+        }
+        console.log('-----------')
+      });
+    }
+    console.error('Error fetching rows:');
+  })
+
 }
 // 监听更新事件
 autoUpdater.on('update-available', async (info) => {
@@ -93,7 +167,7 @@ autoUpdater.on('download-progress', (progressObj) => {
 autoUpdater.on('update-downloaded', () => {
   const notification = new Notification({
     title: '更新下载完成',
-    body: '新版本将被安装，应用程序将会重新启动。',
+    body: '新版本将被安装啦，应用程序将会重新启动！！！！！！！！！',
   });
 
   notification.on('click', () => {

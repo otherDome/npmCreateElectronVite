@@ -1,34 +1,34 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-
-defineProps<{ msg: string }>()
-
-const count = ref(0)
+import axios from 'axios';
+let message = ref('');
+const addHttp = () => {
+  axios.get('http://127.0.0.1:3000/api/test')
+    .then((response: any) => {
+      // 请求成功，打印响应数据
+      console.log('res: ', response.data);
+      message.value = '调用成功'
+    })
+    .catch((error: any) => {
+      // 请求失败，打印错误信息
+      console.error('Error during fetching user data:', error);
+    });
+}
+const sendMessage = () => {
+  (window as any).ipcRenderer.send('test', '向主线程发送消息');
+};
+(window as any).ipcRenderer.on('add', (event: any, data: any) => {
+  console.log(event, data)
+  message.value = JSON.stringify(data)
+})
 </script>
 
 <template>
-  <h1>{{ msg }}</h1>
-
-  <div class="card">
-    <button type="button" @click="count++">count is {{ count }}</button>
-    <p>
-      Edit
-      <code>components/HelloWorld.vue</code> to test HMR
-    </p>
+  <div>
+    <button @click="sendMessage">渲染线程发送消息</button>
+    <button @click="addHttp">调用本地数据接口</button>
+    <p>{{ message }}</p>
   </div>
-
-  <p>
-    Check out
-    <a href="https://vuejs.org/guide/quick-start.html#local" target="_blank"
-      >create-vue</a
-    >, the official Vue + Vite starter
-  </p>
-  <p>
-    Install
-    <a href="https://github.com/vuejs/language-tools" target="_blank">Volar</a>
-    in your IDE for a better DX
-  </p>
-  <p class="read-the-docs">Click on the Vite and Vue logos to learn more</p>
 </template>
 
 <style scoped>
